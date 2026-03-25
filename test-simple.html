@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html>
+<body>
+<div id="result"></div>
+<script>
+async function test() {
+    try {
+        const res = await fetch('http://localhost:8001/api/status');
+        const data = await res.json();
+        document.getElementById('result').innerHTML = 
+            '后端: ' + data.components.backend.status + '<br>' +
+            '数据库: ' + data.components.database.status + '<br>' +
+            'AI: ' + data.components.ai_parser.status;
+    } catch(e) {
+        document.getElementById('result').innerHTML = '错误: ' + e.message;
+    }
+}
+test();
+</script>
+</body>
+</html>

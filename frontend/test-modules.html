@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>功能模块测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .test-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .test-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .test-card h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1.3rem;
+        }
+        
+        .test-card p {
+            color: #666;
+            margin: 0 0 20px 0;
+            line-height: 1.5;
+        }
+        
+        .test-button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .test-button:hover {
+            background: #4338ca;
+        }
+        
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .instructions {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 功能模块测试</h1>
+            <p>点击测试按钮验证各功能模块是否正常工作</p>
+        </div>
+        
+        <div class="instructions">
+            <h3>测试说明：</h3>
+            <ul>
+                <li>点击"任务分解"按钮会打开一个模态框，允许输入项目信息</li>
+                <li>可以填写项目名称、日期、团队信息等</li>
+                <li>支持文本输入和文件上传两种方式</li>
+                <li>可以选择按月、按周或按日分解任务</li>
+                <li>点击"开始分解任务"后，AI会模拟处理并生成任务列表</li>
+                <li>其他功能模块目前显示开发中提示</li>
+            </ul>
+        </div>
+        
+        <div class="test-grid">
+            <div class="test-card" onclick="testTaskDecomposition()">
+                <h3>📋 任务分解</h3>
+                <p>根据项目时间线和团队信息，AI自动生成每日/每周/每月任务列表</p>
+                <button class="test-button">测试任务分解</button>
+            </div>
+            
+            <div class="test-card" onclick="testPriorityManagement()">
+                <h3>🎯 优先级管理</h3>
+                <p>拖拽式优先级排序，支持P0-P3四级优先级，批量任务管理</p>
+                <button class="test-button">测试优先级管理</button>
+            </div>
+            
+            <div class="test-card" onclick="testReminderService()">
+                <h3>⏰ 提醒服务</h3>
+                <p>关键里程碑前自动发送通知提醒，支持邮件、短信、系统通知</p>
+                <button class="test-button">测试提醒服务</button>
+            </div>
+            
+            <div class="test-card" onclick="testVisualizationDashboard()">
+                <h3>📊 可视化Dashboard</h3>
+                <p>按项目/时间显示任务进度和统计，图表化展示团队负载</p>
+                <button class="test-button">测试可视化Dashboard</button>
+            </div>
+            
+            <div class="test-card" onclick="testAutoReport()">
+                <h3>📄 自动报告</h3>
+                <p>基于任务优先级生成每日报告，支持多种模板和导出格式</p>
+                <button class="test-button">测试自动报告</button>
+            </div>
+            
+            <div class="test-card" onclick="testApiInterface()">
+                <h3>🔧 API接口</h3>
+                <p>完整的RESTful API，支持第三方集成和自动化工作流</p>
+                <button class="test-button">测试API接口</button>
+            </div>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="index.html" class="back-link">← 返回主页面</a>
+        </div>
+    </div>
+    
+    <script src="modules.js"></script>
+    <script>
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            console.log('功能模块测试页面已加载');
+            
+            // 确保 modules.js 已加载
+            if (typeof ModuleHandler === 'undefined') {
+                console.error('ModuleHandler 未定义，请检查 modules.js 文件');
+                alert('❌ 模块处理器未加载，请刷新页面重试');
+                return;
+            }
+            
+            // 初始化模块处理器
+            const moduleHandler = ModuleHandler.getInstance();
+            console.log('模块处理器状态:', moduleHandler ? '已初始化' : '未初始化');
+            
+            // 将处理器绑定到全局对象，以便按钮点击访问
+            window.moduleHandler = moduleHandler;
+        });
+        
+        function testTaskDecomposition() {
+            if (window.moduleHandler) {
+                window.moduleHandler.handleTaskDecomposition();
+            } else {
+                alert('模块处理器未初始化，请等待页面加载完成');
+            }
+        }
+        
+        function testPriorityManagement() {
+            if (window.moduleHandler) {
+                window.moduleHandler.handlePriorityManagement();
+            } else {
+                alert('模块处理器未初始化，请等待页面加载完成');
+            }
+        }
+        
+        function testReminderService() {
+            if (window.moduleHandler) {
+                window.moduleHandler.handleReminderService();
+            } else {
+                alert('模块处理器未初始化，请等待页面加载完成');
+            }
+        }
+        
+        function testVisualizationDashboard() {
+            if (window.moduleHandler) {
+                window.moduleHandler.handleVisualizationDashboard();
+            } else {
+                alert('模块处理器未初始化，请等待页面加载完成');
+            }
+        }
+        
+        function testAutoReport() {
+            if (window.moduleHandler) {
+                window.moduleHandler.handleAutoReport();
+            } else {
+                alert('模块处理器未初始化，请等待页面加载完成');
+            }
+        }
+        
+        function testApiInterface() {
+            if (window.moduleHandler) {
+                window.moduleHandler.handleApiInterface();
+            } else {
+                alert('模块处理器未初始化，请等待页面加载完成');
+            }
+        }
+    </script>
+</body>
+</html>

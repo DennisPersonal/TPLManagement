@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>状态测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .status-item {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .running { color: green; }
+        .stopped { color: red; }
+        .pending { color: orange; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>系统状态测试</h1>
+    
+    <div>
+        <button onclick="testBackendHealth()">测试后端健康检查</button>
+        <button onclick="testSystemStatus()">测试系统状态</button>
+        <button onclick="testAll()">测试所有端点</button>
+    </div>
+    
+    <div id="result">点击按钮开始测试...</div>
+    
+    <div id="statusDisplay">
+        <h2>当前状态</h2>
+        <div class="status-item">
+            <strong>后端API:</strong> <span id="backendStatus">未检查</span>
+        </div>
+        <div class="status-item">
+            <strong>数据库:</strong> <span id="dbStatus">未检查</span>
+        </div>
+        <div class="status-item">
+            <strong>AI服务:</strong> <span id="aiStatus">未检查</span>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8001/api';
+        
+        function updateResult(text) {
+            document.getElementById('result').textContent = text;
+        }
+        
+        function updateStatus(backend, db, ai) {
+            document.getElementById('backendStatus').textContent = backend;
+            document.getElementById('backendStatus').className = getStatusClass(backend);
+            document.getElementById('dbStatus').textContent = db;
+            document.getElementById('dbStatus').className = getStatusClass(db);
+            document.getElementById('aiStatus').textContent = ai;
+            document.getElementById('aiStatus').className = getStatusClass(ai);
+        }
+        
+        function getStatusClass(status) {
+            if (status.includes('✅') || status.includes('运行') || status.includes('连接') || status.includes('配置')) {
+                return 'running';
+            } else if (status.includes('❌') || status.includes('失败') || status.includes('停止')) {
+                return 'stopped';
+            } else {
+                return 'pending';
+            }
+        }
+        
+        async function testBackendHealth() {
+            try {
+                updateResult('正在测试后端健康检查...');
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateResult(`✅ 后端健康检查成功\n${JSON.stringify(data, null, 2)}`);
+                    updateStatus('✅ 运行中', '未检查', '未检查');
+                } else {
+                    updateResult(`❌ 后端健康检查失败: ${response.status}`);
+                    updateStatus('❌ 已停止', '未检查', '未检查');
+                }
+            } catch (error) {
+                updateResult(`❌ 后端健康检查错误: ${error.message}`);
+                updateStatus('❌ 连接失败', '未检查', '未检查');
+            }
+        }
+        
+        async function testSystemStatus() {
+            try {
+                updateResult('正在测试系统状态...');
+                const response = await fetch(`${API_BASE}/status`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateResult(`✅ 系统状态检查成功\n${JSON.stringify(data, null, 2)}`);
+                    
+                    // 更新状态显示
+                    const backend = data.components.backend?.status === 'running' ? '✅ 运行中' : '❌ 已停止';
+                    const db = data.components.database?.status === 'connected' ? '✅ 已连接' : '❌ 连接失败';
+                    const ai = data.components.ai_parser?.status === 'available' ? '✅ 已配置' : '❌ 配置失败';
+                    
+                    updateStatus(backend, db, ai);
+                } else {
+                    updateResult(`❌ 系统状态检查失败: ${response.status}`);
+                    updateStatus('❌ 已停止', '❌ 连接失败', '❌ 配置失败');
+                }
+            } catch (error) {
+                updateResult(`❌ 系统状态检查错误: ${error.message}`);
+                updateStatus('❌ 连接失败', '❌ 连接失败', '❌ 配置失败');
+            }
+        }
+        
+        async function testAll() {
+            await testBackendHealth();
+            setTimeout(async () => {
+                await testSystemStatus();
+            }, 1000);
+        }
+        
+        // 页面加载时自动测试
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(testAll, 1000);
+        });
+    </script>
+</body>
+</html>

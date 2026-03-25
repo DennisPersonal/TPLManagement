@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>前端状态测试</title>
+</head>
+<body>
+    <h1>前端状态检查测试</h1>
+    <div>
+        <p>前端状态: <span id="frontend-status">测试中...</span></p>
+        <p>后端状态: <span id="backend-status">测试中...</span></p>
+        <p>数据库状态: <span id="database-status">测试中...</span></p>
+        <p>AI状态: <span id="ai-status">测试中...</span></p>
+    </div>
+    
+    <script>
+        async function checkStatus() {
+            try {
+                const response = await fetch('http://localhost:8001/api/status');
+                if (!response.ok) {
+                    throw new Error(`HTTP错误: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                document.getElementById('frontend-status').textContent = '✅ 运行中';
+                document.getElementById('backend-status').textContent = 
+                    data.components.backend.status === 'running' ? '✅ 运行中' : '❌ 已停止';
+                document.getElementById('database-status').textContent = 
+                    data.components.database.status === 'connected' ? '✅ 已连接' : '❌ 连接失败';
+                document.getElementById('ai-status').textContent = 
+                    data.components.ai_parser.status === 'available' ? '✅ 已配置' : '❌ 配置失败';
+                    
+                console.log('状态检查成功:', data);
+            } catch (error) {
+                console.error('状态检查失败:', error);
+                document.getElementById('backend-status').textContent = `❌ 错误: ${error.message}`;
+            }
+        }
+        
+        checkStatus();
+    </script>
+</body>
+</html>

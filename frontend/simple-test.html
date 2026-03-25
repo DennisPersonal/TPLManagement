@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>简单模块测试</title>
+    <script>
+        window.addEventListener('load', function() {
+            console.log('页面加载完成');
+            
+            // 动态加载 modules.js
+            const script = document.createElement('script');
+            script.src = 'modules.js';
+            script.onload = function() {
+                console.log('modules.js 加载完成');
+                
+                if (typeof ModuleHandler === 'undefined') {
+                    document.body.innerHTML = '<h1 style="color:red">❌ ModuleHandler 未定义</h1>';
+                    console.error('ModuleHandler 未定义');
+                    return;
+                }
+                
+                console.log('ModuleHandler 已定义');
+                
+                try {
+                    const instance = ModuleHandler.getInstance();
+                    console.log('ModuleHandler 实例创建成功:', instance);
+                    
+                    // 测试方法
+                    const methods = [
+                        'handleTaskDecomposition',
+                        'handlePriorityManagement',
+                        'handleReminderService',
+                        'handleVisualizationDashboard',
+                        'handleAutoReport',
+                        'handleApiInterface'
+                    ];
+                    
+                    let html = '<h1 style="color:green">✅ 模块测试通过</h1>';
+                    html += '<h3>可用方法:</h3><ul>';
+                    
+                    methods.forEach(method => {
+                        if (typeof instance[method] === 'function') {
+                            html += `<li>✅ ${method}</li>`;
+                        } else {
+                            html += `<li style="color:red">❌ ${method}</li>`;
+                        }
+                    });
+                    
+                    html += '</ul>';
+                    html += '<button onclick="testTask()">测试任务分解</button>';
+                    html += '<button onclick="location.reload()">刷新页面</button>';
+                    
+                    document.body.innerHTML = html;
+                    
+                    // 将测试函数暴露到全局
+                    window.testTask = function() {
+                        try {
+                            instance.handleTaskDecomposition();
+                            alert('任务分解模块调用成功！');
+                        } catch (error) {
+                            alert('调用失败: ' + error.message);
+                        }
+                    };
+                    
+                } catch (error) {
+                    document.body.innerHTML = '<h1 style="color:red">❌ 创建实例失败: ' + error.message + '</h1>';
+                    console.error('创建实例失败:', error);
+                }
+            };
+            
+            script.onerror = function() {
+                document.body.innerHTML = '<h1 style="color:red">❌ 加载 modules.js 失败</h1>';
+                console.error('加载 modules.js 失败');
+            };
+            
+            document.head.appendChild(script);
+        });
+    </script>
+</head>
+<body>
+    <h1>加载中...</h1>
+</body>
+</html>

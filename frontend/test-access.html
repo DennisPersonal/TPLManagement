@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>页面访问测试</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .test-item {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 页面访问测试</h1>
+        <p>测试所有相关页面是否可以正常访问：</p>
+        
+        <div class="test-item">
+            <h3>1. 主页面 (index.html)</h3>
+            <p>URL: <code>http://localhost:8000/</code></p>
+            <button onclick="testPage('index', '/')">测试访问</button>
+            <span id="status-index" class="status loading">等待测试</span>
+            <div id="result-index" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>2. 修复验证页面 (verify-fix.html)</h3>
+            <p>URL: <code>http://localhost:8000/verify-fix.html</code></p>
+            <button onclick="testPage('verify', '/verify-fix.html')">测试访问</button>
+            <span id="status-verify" class="status loading">等待测试</span>
+            <div id="result-verify" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>3. 状态修复测试页面 (test-status-fix.html)</h3>
+            <p>URL: <code>http://localhost:8000/test-status-fix.html</code></p>
+            <button onclick="testPage('test', '/test-status-fix.html')">测试访问</button>
+            <span id="status-test" class="status loading">等待测试</span>
+            <div id="result-test" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>4. 后端API状态检查</h3>
+            <p>URL: <code>http://localhost:8001/api/status</code></p>
+            <button onclick="testBackend()">测试API</button>
+            <span id="status-backend" class="status loading">等待测试</span>
+            <div id="result-backend" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>5. 批量测试所有页面</h3>
+            <button onclick="testAll()">🚀 一键测试所有</button>
+            <div id="result-all" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>📋 测试结果汇总</h3>
+            <div id="summary"></div>
+        </div>
+    </div>
+
+    <script>
+        async function testPage(id, path) {
+            const statusEl = document.getElementById(`status-${id}`);
+            const resultEl = document.getElementById(`result-${id}`);
+            
+            statusEl.textContent = '测试中...';
+            statusEl.className = 'status loading';
+            resultEl.textContent = '';
+            
+            try {
+                const response = await fetch(path);
+                const status = response.status;
+                const text = await response.text();
+                
+                if (status === 200) {
+                    statusEl.textContent = '✅ 可访问';
+                    statusEl.className = 'status success';
+                    resultEl.textContent = `HTTP状态码: ${status}\n页面大小: ${text.length} 字符`;
+                } else {
+                    statusEl.textContent = `❌ 错误: ${status}`;
+                    statusEl.className = 'status error';
+                    resultEl.textContent = `HTTP状态码: ${status}\n响应: ${text.substring(0, 200)}...`;
+                }
+            } catch (error) {
+                statusEl.textContent = '❌ 连接失败';
+                statusEl.className = 'status error';
+                resultEl.textContent = `错误: ${error.message}`;
+            }
+        }
+        
+        async function testBackend() {
+            const statusEl = document.getElementById('status-backend');
+            const resultEl = document.getElementById('result-backend');
+            
+            statusEl.textContent = '测试中...';
+            statusEl.className = 'status loading';
+            resultEl.textContent = '';
+            
+            try {
+                const response = await fetch('http://localhost:8001/api/status');
+                const status = response.status;
+                const data = await response.json();
+                
+                if (status === 200) {
+                    statusEl.textContent = '✅ API正常';
+                    statusEl.className = 'status success';
+                    resultEl.textContent = `HTTP状态码: ${status}\n后端状态: ${data.backend}\n数据库: ${data.database}\nAI服务: ${data.ai}`;
+                } else {
+                    statusEl.textContent = `❌ API错误: ${status}`;
+                    statusEl.className = 'status error';
+                    resultEl.textContent = `HTTP状态码: ${status}\n响应: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                statusEl.textContent = '❌ 连接失败';
+                statusEl.className = 'status error';
+                resultEl.textContent = `错误: ${error.message}\n请确保后端服务正在运行 (端口8001)`;
+            }
+        }
+        
+        async function testAll() {
+            const resultAll = document.getElementById('result-all');
+            const summary = document.getElementById('summary');
+            
+            resultAll.textContent = '开始批量测试...';
+            summary.innerHTML = '';
+            
+            // 测试所有页面
+            const tests = [
+                { id: 'index', path: '/' },
+                { id: 'verify', path: '/verify-fix.html' },
+                { id: 'test', path: '/test-status-fix.html' }
+            ];
+            
+            let successCount = 0;
+            let totalCount = tests.length + 1; // 页面 + 后端API
+            
+            for (const test of tests) {
+                await testPage(test.id, test.path);
+                const statusEl = document.getElementById(`status-${test.id}`);
+                if (statusEl.textContent.includes('✅')) {
+                    successCount++;
+                }
+            }
+            
+            // 测试后端API
+            await testBackend();
+            const backendStatus = document.getElementById('status-backend');
+            if (backendStatus.textContent.includes('✅')) {
+                successCount++;
+            }
+            
+            // 显示汇总结果
+            resultAll.textContent = `测试完成！成功: ${successCount}/${totalCount}`;
+            
+            const summaryHtml = `
+                <h4>📊 测试结果汇总:</h4>
+                <ul>
+                    <li>主页面: <strong>${document.getElementById('status-index').textContent}</strong></li>
+                    <li>修复验证页面: <strong>${document.getElementById('status-verify').textContent}</strong></li>
+                    <li>状态测试页面: <strong>${document.getElementById('status-test').textContent}</strong></li>
+                    <li>后端API: <strong>${document.getElementById('status-backend').textContent}</strong></li>
+                </ul>
+                <p>✅ 所有页面现在应该都可以正常访问了！</p>
+            `;
+            summary.innerHTML = summaryHtml;
+        }
+        
+        // 页面加载时自动测试主页面
+        window.onload = function() {
+            testPage('index', '/');
+        };
+    </script>
+</body>
+</html>

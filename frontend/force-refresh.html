@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>强制刷新状态</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .status-box {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .status-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #6c757d;
+        }
+        .status-item.running {
+            border-left-color: #28a745;
+        }
+        .status-item.stopped {
+            border-left-color: #dc3545;
+        }
+        .status-item.pending {
+            border-left-color: #ffc107;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.refresh {
+            background: #28a745;
+        }
+        button.refresh:hover {
+            background: #218838;
+        }
+        #log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #343a40;
+            color: white;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>强制刷新系统状态</h1>
+    <p>此页面将强制刷新系统状态，绕过浏览器缓存。</p>
+    
+    <div class="status-box">
+        <h2>当前系统状态</h2>
+        <div class="status-item" id="backendStatus">
+            <strong>后端API:</strong> <span class="status-text">检查中...</span>
+        </div>
+        <div class="status-item" id="dbStatus">
+            <strong>数据库:</strong> <span class="status-text">检查中...</span>
+        </div>
+        <div class="status-item" id="aiStatus">
+            <strong>AI任务分解:</strong> <span class="status-text">检查中...</span>
+        </div>
+    </div>
+    
+    <div>
+        <button class="refresh" onclick="forceRefresh()">🔄 强制刷新状态</button>
+        <button onclick="openMainPage()">📋 打开主页面</button>
+        <button onclick="clearCache()">🧹 清除浏览器缓存</button>
+    </div>
+    
+    <div id="log">日志输出...</div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8001/api';
+        let logElement = document.getElementById('log');
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function clearLog() {
+            logElement.textContent = '';
+        }
+        
+        function updateStatus(elementId, status, text) {
+            const element = document.getElementById(elementId);
+            const textElement = element.querySelector('.status-text');
+            
+            // 更新文本
+            textElement.textContent = text;
+            
+            // 更新样式
+            element.className = 'status-item';
+            if (status === 'running') {
+                element.classList.add('running');
+            } else if (status === 'stopped') {
+                element.classList.add('stopped');
+            } else {
+                element.classList.add('pending');
+            }
+        }
+        
+        async function forceRefresh() {
+            clearLog();
+            log('开始强制刷新系统状态...');
+            
+            try {
+                // 添加时间戳避免缓存
+                const timestamp = new Date().getTime();
+                const url = `${API_BASE}/status?_=${timestamp}`;
+                
+                log(`请求URL: ${url}`);
+                const response = await fetch(url);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ 获取系统状态成功');
+                    log(JSON.stringify(data, null, 2));
+                    
+                    // 更新状态显示
+                    const backendStatus = data.components.backend?.status === 'running' ? 'running' : 'stopped';
+                    const backendText = data.components.backend?.status === 'running' ? '✅ 运行中' : '❌ 已停止';
+                    
+                    const dbStatus = data.components.database?.status === 'connected' ? 'running' : 'stopped';
+                    const dbText = data.components.database?.status === 'connected' ? '✅ 已连接' : '❌ 连接失败';
+                    
+                    const aiStatus = data.components.ai_parser?.status === 'available' ? 'running' : 'stopped';
+                    const aiText = data.components.ai_parser?.status === 'available' ? '✅ 已配置' : '❌ 配置失败';
+                    
+                    updateStatus('backendStatus', backendStatus, backendText);
+                    updateStatus('dbStatus', dbStatus, dbText);
+                    updateStatus('aiStatus', aiStatus, aiText);
+                    
+                    log('\n✅ 状态更新完成！');
+                    log(`后端API: ${backendText}`);
+                    log(`数据库: ${dbText}`);
+                    log(`AI任务分解: ${aiText}`);
+                    
+                    // 显示成功通知
+                    showNotification('状态刷新成功！', 'success');
+                } else {
+                    log(`❌ 获取状态失败: HTTP ${response.status}`);
+                    updateStatus('backendStatus', 'stopped', '❌ 连接失败');
+                    updateStatus('dbStatus', 'stopped', '❌ 连接失败');
+                    updateStatus('aiStatus', 'stopped', '❌ 配置失败');
+                    showNotification('状态刷新失败', 'error');
+                }
+            } catch (error) {
+                log(`❌ 请求失败: ${error.message}`);
+                updateStatus('backendStatus', 'stopped', '❌ 连接失败');
+                updateStatus('dbStatus', 'stopped', '❌ 连接失败');
+                updateStatus('aiStatus', 'stopped', '❌ 配置失败');
+                showNotification('状态刷新失败', 'error');
+            }
+        }
+        
+        function openMainPage() {
+            // 添加时间戳避免缓存
+            const timestamp = new Date().getTime();
+            window.open(`/?_=${timestamp}`, '_blank');
+            log('已打开主页面（带缓存绕过）');
+        }
+        
+        function clearCache() {
+            if (confirm('这将清除浏览器缓存并刷新页面。确定要继续吗？')) {
+                // 清除localStorage和sessionStorage
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // 强制刷新页面
+                window.location.reload(true);
+            }
+        }
+        
+        function showNotification(message, type) {
+            // 创建简单的通知
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: bold;
+                z-index: 1000;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+            
+            // 添加CSS动画
+            if (!document.querySelector('#notification-animations')) {
+                const style = document.createElement('style');
+                style.id = 'notification-animations';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+        
+        // 页面加载时自动刷新
+        document.addEventListener('DOMContentLoaded', function() {
+            log('页面加载完成，开始检查系统状态...');
+            setTimeout(() => {
+                forceRefresh();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
