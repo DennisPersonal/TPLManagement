@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 项目管理系统 - 后端主程序
 FastAPI 实现
@@ -6,7 +8,7 @@ FastAPI 实现
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from datetime import datetime
+from datetime import datetime, timedelta
 import uvicorn
 from typing import List, Optional
 from pydantic import BaseModel

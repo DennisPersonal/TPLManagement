@@ -3,39 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>模块功能修复测试</title>
+    <title>模块修复测试</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #f5f5f5;
-            min-height: 100vh;
+            margin: 20px;
+            background: #f8fafc;
         }
-        
         .container {
             max-width: 800px;
             margin: 0 auto;
             background: white;
-            border-radius: 10px;
             padding: 30px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        
         h1 {
-            color: #333;
+            color: #1e293b;
             margin-bottom: 20px;
         }
-        
         .test-section {
             margin: 20px 0;
             padding: 20px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
         }
-        
-        .test-button {
-            background: #4f46e5;
+        button {
+            background: #3b82f6;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -44,227 +38,128 @@
             font-size: 16px;
             margin: 10px 5px;
         }
-        
-        .test-button:hover {
-            background: #4338ca;
+        button:hover {
+            background: #2563eb;
         }
-        
         .result {
             margin-top: 10px;
             padding: 10px;
+            background: #f1f5f9;
             border-radius: 6px;
             font-family: monospace;
-            white-space: pre-wrap;
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
         }
-        
-        .success {
-            color: #198754;
-            background: #d1e7dd;
-            border-color: #badbcc;
-        }
-        
-        .error {
-            color: #dc3545;
-            background: #f8d7da;
-            border-color: #f5c2c7;
-        }
-        
-        .info {
-            color: #0dcaf0;
-            background: #cff4fc;
-            border-color: #b6effb;
-        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>模块功能修复测试</h1>
+        <h1>模块修复测试</h1>
         
         <div class="test-section">
-            <h3>1. 检查模块文件加载</h3>
-            <button class="test-button" onclick="checkModuleFile()">检查 modules.js 文件</button>
-            <div id="file-result" class="result"></div>
+            <h3>1. 加载 modules.js</h3>
+            <button onclick="loadModules()">加载模块</button>
+            <div id="load-result" class="result"></div>
         </div>
         
         <div class="test-section">
-            <h3>2. 检查 ModuleHandler 类</h3>
-            <button class="test-button" onclick="checkModuleHandler()">检查 ModuleHandler 类</button>
-            <div id="handler-result" class="result"></div>
+            <h3>2. 测试 AI任务分解 功能</h3>
+            <button onclick="testAITaskDecomposition()">测试AI任务分解</button>
+            <div id="ai-test-result" class="result"></div>
         </div>
         
         <div class="test-section">
-            <h3>3. 测试模块功能</h3>
-            <button class="test-button" onclick="testTaskModule()">测试任务分解模块</button>
-            <button class="test-button" onclick="testAllModules()">测试所有模块</button>
-            <div id="module-result" class="result"></div>
-        </div>
-        
-        <div class="test-section">
-            <h3>4. 页面链接</h3>
-            <p><a href="http://localhost:8000/index.html" target="_blank">主页面</a></p>
-            <p><a href="http://localhost:8000/test-modules.html" target="_blank">模块测试页面</a></p>
+            <h3>3. 检查语法错误</h3>
+            <button onclick="checkSyntax()">检查语法</button>
+            <div id="syntax-result" class="result"></div>
         </div>
     </div>
-    
-    <script src="modules.js"></script>
+
     <script>
-        function checkModuleFile() {
-            const result = document.getElementById('file-result');
-            result.className = 'result';
+        let modulesLoaded = false;
+        let moduleInstance = null;
+
+        function loadModules() {
+            const resultEl = document.getElementById('load-result');
+            try {
+                // 动态加载 modules.js
+                const script = document.createElement('script');
+                script.src = 'modules.js';
+                script.onload = function() {
+                    if (typeof ModuleManager !== 'undefined') {
+                        moduleInstance = new ModuleManager();
+                        modulesLoaded = true;
+                        resultEl.innerHTML = '<span class="success">✅ modules.js 加载成功！ModuleManager 已初始化。</span>';
+                        console.log('ModuleManager loaded:', moduleInstance);
+                    } else {
+                        resultEl.innerHTML = '<span class="error">❌ ModuleManager 未定义</span>';
+                    }
+                };
+                script.onerror = function() {
+                    resultEl.innerHTML = '<span class="error">❌ 加载 modules.js 失败</span>';
+                };
+                document.head.appendChild(script);
+            } catch (error) {
+                resultEl.innerHTML = `<span class="error">❌ 加载错误: ${error.message}</span>`;
+            }
+        }
+
+        function testAITaskDecomposition() {
+            const resultEl = document.getElementById('ai-test-result');
+            
+            if (!modulesLoaded || !moduleInstance) {
+                resultEl.innerHTML = '<span class="error">❌ 请先加载模块</span>';
+                return;
+            }
+
+            try {
+                // 调用 AI任务分解 方法
+                moduleInstance.showAITaskDecomposition();
+                resultEl.innerHTML = '<span class="success">✅ AI任务分解 功能调用成功！应该显示模态窗口。</span>';
+            } catch (error) {
+                resultEl.innerHTML = `<span class="error">❌ 调用失败: ${error.message}</span>`;
+                console.error('AI Task Decomposition error:', error);
+            }
+        }
+
+        function checkSyntax() {
+            const resultEl = document.getElementById('syntax-result');
             
             fetch('modules.js')
-                .then(response => {
-                    if (response.ok) {
-                        result.innerHTML = '✅ modules.js 文件存在且可访问';
-                        result.classList.add('success');
-                    } else {
-                        result.innerHTML = '❌ modules.js 文件访问失败: ' + response.status;
-                        result.classList.add('error');
+                .then(response => response.text())
+                .then(code => {
+                    try {
+                        // 尝试解析 JavaScript 代码
+                        new Function(code);
+                        resultEl.innerHTML = '<span class="success">✅ 语法检查通过！没有语法错误。</span>';
+                    } catch (error) {
+                        resultEl.innerHTML = `<span class="error">❌ 语法错误: ${error.message}</span>`;
+                        console.error('Syntax error:', error);
+                        
+                        // 尝试定位错误行号
+                        const match = error.message.match(/line (\d+)/);
+                        if (match) {
+                            const lineNum = parseInt(match[1]);
+                            const lines = code.split('\n');
+                            const start = Math.max(0, lineNum - 3);
+                            const end = Math.min(lines.length, lineNum + 2);
+                            const context = lines.slice(start, end).map((line, i) => {
+                                const lineNo = start + i + 1;
+                                const prefix = lineNo === lineNum ? '❌ ' : '   ';
+                                return `${prefix}${lineNo}: ${line}`;
+                            }).join('\n');
+                            
+                            resultEl.innerHTML += `<pre style="margin-top: 10px; background: #1e293b; color: #f1f5f9; padding: 10px; border-radius: 6px;">${context}</pre>`;
+                        }
                     }
                 })
                 .catch(error => {
-                    result.innerHTML = '❌ 检查 modules.js 文件时出错: ' + error.message;
-                    result.classList.add('error');
+                    resultEl.innerHTML = `<span class="error">❌ 无法读取 modules.js: ${error.message}</span>`;
                 });
         }
-        
-        function checkModuleHandler() {
-            const result = document.getElementById('handler-result');
-            result.className = 'result';
-            
-            if (typeof ModuleHandler === 'undefined') {
-                result.innerHTML = '❌ ModuleHandler 未定义\n请检查 modules.js 文件是否已正确加载';
-                result.classList.add('error');
-                return;
-            }
-            
-            try {
-                const instance = ModuleHandler.getInstance();
-                if (instance) {
-                    result.innerHTML = '✅ ModuleHandler 类已定义\n✅ getInstance() 方法可用\n✅ 实例创建成功';
-                    result.classList.add('success');
-                    
-                    // 检查模块方法
-                    const methods = [
-                        'handleTaskDecomposition',
-                        'handlePriorityManagement',
-                        'handleReminderService',
-                        'handleVisualizationDashboard',
-                        'handleAutoReport',
-                        'handleApiInterface'
-                    ];
-                    
-                    let missingMethods = [];
-                    methods.forEach(method => {
-                        if (typeof instance[method] !== 'function') {
-                            missingMethods.push(method);
-                        }
-                    });
-                    
-                    if (missingMethods.length === 0) {
-                        result.innerHTML += '\n✅ 所有6个模块方法都存在';
-                    } else {
-                        result.innerHTML += '\n❌ 缺少方法: ' + missingMethods.join(', ');
-                        result.classList.add('error');
-                    }
-                } else {
-                    result.innerHTML = '❌ ModuleHandler.getInstance() 返回 null';
-                    result.classList.add('error');
-                }
-            } catch (error) {
-                result.innerHTML = '❌ 检查 ModuleHandler 时出错: ' + error.message;
-                result.classList.add('error');
-            }
-        }
-        
-        function testTaskModule() {
-            const result = document.getElementById('module-result');
-            result.className = 'result';
-            
-            if (typeof ModuleHandler === 'undefined') {
-                result.innerHTML = '❌ ModuleHandler 未定义，无法测试';
-                result.classList.add('error');
-                return;
-            }
-            
-            try {
-                const instance = ModuleHandler.getInstance();
-                if (instance && typeof instance.handleTaskDecomposition === 'function') {
-                    result.innerHTML = '✅ 正在调用 handleTaskDecomposition()...';
-                    result.classList.add('info');
-                    
-                    // 延迟执行，让用户看到消息
-                    setTimeout(() => {
-                        try {
-                            instance.handleTaskDecomposition();
-                            result.innerHTML = '✅ 任务分解模块调用成功\n应该显示模态对话框';
-                            result.classList.add('success');
-                        } catch (error) {
-                            result.innerHTML = '❌ 调用任务分解模块失败: ' + error.message;
-                            result.classList.add('error');
-                        }
-                    }, 500);
-                } else {
-                    result.innerHTML = '❌ handleTaskDecomposition 方法不可用';
-                    result.classList.add('error');
-                }
-            } catch (error) {
-                result.innerHTML = '❌ 测试任务模块时出错: ' + error.message;
-                result.classList.add('error');
-            }
-        }
-        
-        function testAllModules() {
-            const result = document.getElementById('module-result');
-            result.className = 'result';
-            
-            if (typeof ModuleHandler === 'undefined') {
-                result.innerHTML = '❌ ModuleHandler 未定义，无法测试';
-                result.classList.add('error');
-                return;
-            }
-            
-            try {
-                const instance = ModuleHandler.getInstance();
-                if (!instance) {
-                    result.innerHTML = '❌ ModuleHandler 实例不可用';
-                    result.classList.add('error');
-                    return;
-                }
-                
-                const modules = [
-                    { name: '任务分解', method: 'handleTaskDecomposition' },
-                    { name: '优先级管理', method: 'handlePriorityManagement' },
-                    { name: '提醒服务', method: 'handleReminderService' },
-                    { name: '可视化仪表板', method: 'handleVisualizationDashboard' },
-                    { name: '自动报告', method: 'handleAutoReport' },
-                    { name: 'API接口', method: 'handleApiInterface' }
-                ];
-                
-                let results = [];
-                modules.forEach(module => {
-                    if (typeof instance[module.method] === 'function') {
-                        results.push(`✅ ${module.name}: 方法可用`);
-                    } else {
-                        results.push(`❌ ${module.name}: 方法不可用`);
-                    }
-                });
-                
-                result.innerHTML = results.join('\n');
-                result.classList.add(results.every(r => r.includes('✅')) ? 'success' : 'error');
-            } catch (error) {
-                result.innerHTML = '❌ 测试所有模块时出错: ' + error.message;
-                result.classList.add('error');
-            }
-        }
-        
-        // 页面加载时自动检查
-        window.addEventListener('load', function() {
-            console.log('模块修复测试页面已加载');
-            checkModuleHandler();
-        });
+
+        // 页面加载时自动检查语法
+        window.addEventListener('DOMContentLoaded', checkSyntax);
     </script>
 </body>
 </html>

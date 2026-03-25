@@ -731,7 +731,22 @@ class ModuleHandler {
                                     <div style="font-size: 0.9rem; color: #64748b;">P0任务</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 1.5rem; font-weight: bold; color: #f97316
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #f97316;">0</div>
+                                    <div style="font-size: 0.9rem; color: #64748b;">P1任务</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #eab308;">0</div>
+                                    <div style="font-size: 0.9rem; color: #64748b;">P2任务</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #84cc16;">0</div>
+                                    <div style="font-size: 0.9rem; color: #64748b;">P3任务</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         
         this.showModal(modalHtml);
         this.initDragAndDrop();
@@ -1981,7 +1996,11 @@ class ModuleHandler {
     
     // 加载甘特图
     async loadGanttChart() {
-        const projectSelect = document.getElementById('project-select');
+        const projectSelect = document.getElementById('gantt-project-select');
+        if (!projectSelect) {
+            console.error('未找到甘特图项目选择框元素');
+            return;
+        }
         const projectId = projectSelect.value;
         
         if (!projectId) {
@@ -2203,7 +2222,7 @@ class ModuleHandler {
     
     // 刷新Dashboard
     refreshDashboard() {
-        const projectSelect = document.getElementById('project-select');
+        const projectSelect = document.getElementById('gantt-project-select');
         if (projectSelect && projectSelect.value) {
             this.loadGanttChart();
         }

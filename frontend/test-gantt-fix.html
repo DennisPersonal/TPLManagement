@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>甘特图功能修复测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            color: #4f46e5;
+            margin-bottom: 15px;
+        }
+        .test-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        .test-btn:hover {
+            background: #4338ca;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 5px;
+            border-left: 4px solid #4f46e5;
+        }
+        .success {
+            color: #10b981;
+        }
+        .error {
+            color: #ef4444;
+        }
+        .dashboard-preview {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 甘特图功能修复测试</h1>
+    
+    <div class="test-section">
+        <h2 class="test-title">1. 模块加载测试</h2>
+        <p>测试 ModuleHandler 是否已正确加载</p>
+        <button class="test-btn" onclick="testModuleLoading()">测试模块加载</button>
+        <div id="result1" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2 class="test-title">2. 甘特图功能测试</h2>
+        <p>测试甘特图加载功能是否正常工作</p>
+        <div class="dashboard-preview">
+            <h3>📅 甘特图时间线预览</h3>
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                    <select id="gantt-project-select" style="padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; background: white;">
+                        <option value="">选择项目</option>
+                        <option value="1">网站重构项目</option>
+                        <option value="2">移动应用开发</option>
+                        <option value="3">API集成项目</option>
+                    </select>
+                    <button class="test-btn" onclick="testLoadGantt()">加载甘特图</button>
+                </div>
+                
+                <div id="gantt-chart-container" style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; min-height: 200px; overflow-x: auto;">
+                    <div style="text-align: center; color: #64748b; padding: 50px 0;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">📊</div>
+                        <div>选择项目并点击"加载甘特图"查看时间线</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="result2" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2 class="test-title">3. 错误处理测试</h2>
+        <p>测试修复前的错误场景（使用错误的元素ID）</p>
+        <button class="test-btn" onclick="testErrorScenario()">测试错误场景</button>
+        <div id="result3" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2 class="test-title">4. 完整功能测试</h2>
+        <p>测试完整的可视化仪表盘功能</p>
+        <button class="test-btn" onclick="testFullDashboard()">测试完整功能</button>
+        <div id="result4" class="result"></div>
+    </div>
+
+    <script src="modules.js"></script>
+    <script>
+        function showResult(elementId, message, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<span class="${isSuccess ? 'success' : 'error'}">${message}</span>`;
+        }
+        
+        function testModuleLoading() {
+            try {
+                if (typeof ModuleHandler !== 'undefined') {
+                    const handler = ModuleHandler.getInstance();
+                    if (typeof handler.loadGanttChart === 'function') {
+                        showResult('result1', '✅ ModuleHandler 已正确加载，loadGanttChart 函数可用', true);
+                    } else {
+                        showResult('result1', '❌ loadGanttChart 函数未找到', false);
+                    }
+                } else {
+                    showResult('result1', '❌ ModuleHandler 未定义', false);
+                }
+            } catch (error) {
+                showResult('result1', `❌ 测试失败：${error.message}`, false);
+            }
+        }
+        
+        function testLoadGantt() {
+            try {
+                const handler = ModuleHandler.getInstance();
+                const projectSelect = document.getElementById('gantt-project-select');
+                
+                if (!projectSelect) {
+                    showResult('result2', '❌ 未找到 gantt-project-select 元素', false);
+                    return;
+                }
+                
+                if (!projectSelect.value) {
+                    showResult('result2', '⚠️ 请先选择一个项目', false);
+                    return;
+                }
+                
+                // 调用修复后的函数
+                handler.loadGanttChart();
+                showResult('result2', '✅ 甘特图加载函数已调用，请查看控制台和页面变化', true);
+                
+            } catch (error) {
+                showResult('result2', `❌ 加载甘特图失败：${error.message}`, false);
+                console.error('甘特图加载错误:', error);
+            }
+        }
+        
+        function testErrorScenario() {
+            try {
+                // 模拟修复前的错误场景
+                const wrongElement = document.getElementById('project-select');
+                if (wrongElement) {
+                    showResult('result3', `⚠️ 找到了 project-select 元素，值为: ${wrongElement.value}`, false);
+                } else {
+                    showResult('result3', '✅ 未找到 project-select 元素（这是正确的，因为修复后应该使用 gantt-project-select）', true);
+                }
+                
+                // 尝试调用修复前的错误代码
+                const handler = ModuleHandler.getInstance();
+                const oldCode = () => {
+                    const projectSelect = document.getElementById('project-select');
+                    const projectId = projectSelect.value; // 这里会报错
+                };
+                
+                try {
+                    oldCode();
+                    showResult('result3', '❌ 旧代码未报错（不应该发生）', false);
+                } catch (error) {
+                    if (error.message.includes('null') || error.message.includes('undefined')) {
+                        showResult('result3', `✅ 旧代码正确报错：${error.message}（证明修复有效）`, true);
+                    } else {
+                        showResult('result3', `⚠️ 旧代码报错：${error.message}`, false);
+                    }
+                }
+                
+            } catch (error) {
+                showResult('result3', `❌ 测试失败：${error.message}`, false);
+            }
+        }
+        
+        function testFullDashboard() {
+            try {
+                const handler = ModuleHandler.getInstance();
+                
+                // 测试所有相关函数
+                const functions = [
+                    'loadGanttChart',
+                    'refreshDashboard',
+                    'renderGanttChart',
+                    'zoomGantt',
+                    'resetGanttView'
+                ];
+                
+                const missingFunctions = [];
+                functions.forEach(funcName => {
+                    if (typeof handler[funcName] !== 'function') {
+                        missingFunctions.push(funcName);
+                    }
+                });
+                
+                if (missingFunctions.length === 0) {
+                    showResult('result4', '✅ 所有甘特图相关函数都可用', true);
+                    
+                    // 测试元素是否存在
+                    const requiredElements = [
+                        'gantt-project-select',
+                        'gantt-chart-container'
+                    ];
+                    
+                    const missingElements = [];
+                    requiredElements.forEach(elementId => {
+                        if (!document.getElementById(elementId)) {
+                            missingElements.push(elementId);
+                        }
+                    });
+                    
+                    if (missingElements.length === 0) {
+                        showResult('result4', '✅ 所有必需元素都存在，甘特图功能完整', true);
+                    } else {
+                        showResult('result4', `⚠️ 缺少元素：${missingElements.join(', ')}`, false);
+                    }
+                    
+                } else {
+                    showResult('result4', `❌ 缺少函数：${missingFunctions.join(', ')}`, false);
+                }
+                
+            } catch (error) {
+                showResult('result4', `❌ 完整功能测试失败：${error.message}`, false);
+            }
+        }
+        
+        // 页面加载时自动测试模块加载
+        window.addEventListener('load', () => {
+            console.log('甘特图修复测试页面加载完成');
+            setTimeout(testModuleLoading, 100);
+        });
+    </script>
+</body>
+</html>

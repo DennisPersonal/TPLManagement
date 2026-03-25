@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完整甘特图功能测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+            color: #334155;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f1f5f9;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #475569;
+        }
+        button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #4338ca;
+        }
+        button:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+        button.secondary {
+            background: #64748b;
+        }
+        button.secondary:hover {
+            background: #475569;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #059669;
+            border-color: #a7f3d0;
+            background: #f0fdf4;
+        }
+        .error {
+            color: #dc2626;
+            border-color: #fecaca;
+            background: #fef2f2;
+        }
+        .loading {
+            color: #64748b;
+            border-color: #e2e8f0;
+            background: #f8fafc;
+        }
+        .dashboard-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .dashboard-content {
+            background: white;
+            border-radius: 12px;
+            width: 1000px;
+            max-width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .dashboard-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dashboard-body {
+            padding: 20px;
+        }
+        .view-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .gantt-container {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 400px;
+            overflow-x: auto;
+        }
+        .gantt-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        select {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: white;
+        }
+        .gantt-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .gantt-table th {
+            background: #f8fafc;
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+        }
+        .gantt-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .priority-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        .priority-p0 { background: #fee2e2; color: #991b1b; }
+        .priority-p1 { background: #ffedd5; color: #9a3412; }
+        .priority-p2 { background: #fef3c7; color: #92400e; }
+        .priority-p3 { background: #d1fae5; color: #065f46; }
+        .progress-bar {
+            width: 60px;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #4f46e5;
+        }
+        .legend {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 完整甘特图功能测试</h1>
+        <p class="subtitle">模拟用户在前端点击"加载甘特图"按钮的完整流程</p>
+        
+        <div class="test-section">
+            <h3>步骤1: 模拟打开可视化仪表盘</h3>
+            <p>用户在前端主界面点击"可视化仪表盘"按钮，打开模态框</p>
+            <button onclick="openDashboard()">打开可视化仪表盘</button>
+            <div id="step1Result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>步骤2: 切换到时间线视图</h3>
+            <p>在仪表盘模态框中点击"时间线"标签页</p>
+            <button onclick="switchToTimeline()" disabled>切换到时间线视图</button>
+            <div id="step2Result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>步骤3: 选择项目并加载甘特图</h3>
+            <p>选择项目后点击"加载甘特图"按钮</p>
+            <button onclick="loadGanttChart()" disabled>加载甘特图</button>
+            <div id="step3Result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>步骤4: 完整功能测试</h3>
+            <p>一键测试完整流程</p>
+            <button onclick="testFullFlow()">测试完整流程</button>
+            <div id="fullFlowResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>步骤5: 问题诊断</h3>
+            <p>检查可能的问题点</p>
+            <button onclick="diagnoseIssues()">诊断问题</button>
+            <div id="diagnosisResult" class="result"></div>
+        </div>
+    </div>
+    
+    <!-- 模拟的仪表盘模态框 -->
+    <div id="dashboardModal" class="dashboard-modal" style="display: none;">
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <h2 style="margin: 0;">📊 可视化仪表盘</h2>
+                <button onclick="closeDashboard()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">×</button>
+            </div>
+            <div class="dashboard-body">
+                <p>实时监控项目进度和团队负载，图表化展示关键指标</p>
+                
+                <div class="view-buttons">
+                    <button class="secondary" onclick="switchView('overview')">概览</button>
+                    <button class="secondary" onclick="switchView('progress')">进度</button>
+                    <button class="secondary" onclick="switchView('team')">团队</button>
+                    <button class="secondary" onclick="switchView('tasks')">任务</button>
+                    <button class="secondary" onclick="switchView('timeline')">时间线</button>
+                </div>
+                
+                <div id="dashboardViews">
+                    <!-- 时间线视图 -->
+                    <div id="timelineView" style="display: none;">
+                        <h3>📅 甘特图时间线</h3>
+                        <div class="gantt-controls">
+                            <select id="ganttProjectSelect">
+                                <option value="1">网站重构项目</option>
+                                <option value="2">移动应用开发</option>
+                                <option value="3">API集成项目</option>
+                            </select>
+                            <button onclick="simulateLoadGantt()">加载甘特图</button>
+                            <div style="margin-left: auto; display: flex; gap: 5px;">
+                                <button class="secondary" style="padding: 5px 10px; font-size: 0.9rem;">缩小</button>
+                                <button class="secondary" style="padding: 5px 10px; font-size: 0.9rem;">放大</button>
+                                <button class="secondary" style="padding: 5px 10px; font-size: 0.9rem;">重置</button>
+                            </div>
+                        </div>
+                        
+                        <div id="ganttChartContainer" class="gantt-container">
+                            <div style="text-align: center; color: #64748b; padding: 100px 0;">
+                                <div style="font-size: 2rem; margin-bottom: 10px;">📊</div>
+                                <div>选择项目并点击"加载甘特图"查看时间线</div>
+                                <div style="font-size: 0.9rem; margin-top: 5px;">甘特图将显示任务的开始/结束时间、进度和负责人</div>
+                            </div>
+                        </div>
+                        
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #ef4444;"></div>
+                                <span>P0 - 紧急</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #f97316;"></div>
+                                <span>P1 - 高</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #eab308;"></div>
+                                <span>P2 - 中</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #22c55e;"></div>
+                                <span>P3 - 低</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 其他视图 -->
+                    <div id="overviewView" style="display: none;">
+                        <h3>概览视图</h3>
+                        <p>这里是概览视图的内容...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 步骤1: 打开仪表盘
+        function openDashboard() {
+            const resultDiv = document.getElementById('step1Result');
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '正在打开可视化仪表盘...';
+            
+            setTimeout(() => {
+                document.getElementById('dashboardModal').style.display = 'flex';
+                document.querySelector('[onclick="switchToTimeline()"]').disabled = false;
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = '✅ 可视化仪表盘已打开\n\n模拟了用户点击主界面的"可视化仪表盘"按钮';
+            }, 500);
+        }
+        
+        // 关闭仪表盘
+        function closeDashboard() {
+            document.getElementById('dashboardModal').style.display = 'none';
+        }
+        
+        // 切换视图
+        function switchView(view) {
+            // 隐藏所有视图
+            document.querySelectorAll('#dashboardViews > div').forEach(div => {
+                div.style.display = 'none';
+            });
+            
+            // 显示选中的视图
+            document.getElementById(view + 'View').style.display = 'block';
+            
+            // 更新按钮状态
+            document.querySelectorAll('.view-buttons button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        // 步骤2: 切换到时间线视图
+        function switchToTimeline() {
+            const resultDiv = document.getElementById('step2Result');
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '正在切换到时间线视图...';
+            
+            setTimeout(() => {
+                switchView('timeline');
+                document.querySelector('[onclick="loadGanttChart()"]').disabled = false;
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = '✅ 已切换到时间线视图\n\n模拟了用户在仪表盘中点击"时间线"标签页';
+            }, 500);
+        }
+        
+        // 步骤3: 加载甘特图
+        async function loadGanttChart() {
+            const resultDiv = document.getElementById('step3Result');
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '正在加载甘特图...\n\n模拟点击"加载甘特图"按钮';
+            
+            try {
+                // 模拟modules.js中的loadGanttChart函数
+                const projectId = document.getElementById('ganttProjectSelect').value;
+                const response = await fetch(`http://localhost:8001/api/gantt/${projectId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`获取甘特图数据失败: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // 渲染甘特图
+                renderGanttChart(data);
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `✅ 甘特图加载成功!\n\n项目ID: ${projectId}\n任务数量: ${data.tasks.length}\nAPI响应状态: ${response.status}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ 甘特图加载失败:\n${error.message}\n\n这可能就是用户遇到的问题!`;
+            }
+        }
+        
+        // 模拟加载甘特图（从模态框内调用）
+        async function simulateLoadGantt() {
+            await loadGanttChart();
+        }
+        
+        // 渲染甘特图
+        function renderGanttChart(data) {
+            const container = document.getElementById('ganttChartContainer');
+            const { tasks, project_id } = data;
+            
+            if (!tasks || tasks.length === 0) {
+                container.innerHTML = `
+                    <div style="padding: 100px 0; text-align: center; color: #94a3b8;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">📭</div>
+                        <p>项目没有任务数据</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 创建甘特图表格
+            let html = `
+                <table class="gantt-table">
+                    <thead>
+                        <tr>
+                            <th>任务</th>
+                            <th>负责人</th>
+                            <th>开始日期</th>
+                            <th>结束日期</th>
+                            <th>进度</th>
+                            <th>优先级</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            tasks.forEach(task => {
+                const priorityClass = `priority-p${task.priority.charAt(1)}`;
+                
+                html += `
+                    <tr>
+                        <td>${task.title}</td>
+                        <td>${task.assigned_to}</td>
+                        <td>${task.start_date}</td>
+                        <td>${task.end_date}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${task.progress}%"></div>
+                            </div>
+                            ${task.progress}%
+                        </td>
+                        <td><span class="priority-badge ${priorityClass}">${task.priority}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 0.9rem;">
+                    项目ID: ${project_id} | 共 ${tasks.length} 个任务
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // 步骤4: 完整功能测试
+        async function testFullFlow() {
+            const resultDiv = document.getElementById('fullFlowResult');
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '开始完整功能测试...\n\n模拟用户从打开仪表盘到加载甘特图的完整流程';
+            
+            try {
+                // 1. 打开仪表盘
+                resultDiv.innerHTML += '\n\n1. 打开可视化仪表盘...';
+                document.getElementById('dashboardModal').style.display = 'flex';
+                
+                // 2. 切换到时间线视图
+                resultDiv.innerHTML += '\n2. 切换到时间线视图...';
+                switchView('timeline');
+                
+                // 3. 加载甘特图
+                resultDiv.innerHTML += '\n3. 加载甘特图...';
+                const projectId = 1;
+                const response = await fetch(`http://localhost:8001/api/gantt/${projectId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`API调用失败: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                renderGanttChart(data);
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML += `\n\n✅ 完整功能测试成功!\n\n所有步骤都通过了:\n1. ✅ 打开仪表盘\n2. ✅ 切换到时间线视图\n3. ✅ 加载甘特图 (${data.tasks.length}个任务)\n\n前端和后端通信正常，CORS配置正确!`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML += `\n\n❌ 完整功能测试失败:\n${error.message}\n\n失败步骤已高亮显示`;
+            }
+        }
+        
+        // 步骤5: 问题诊断
+        async function diagnoseIssues() {
+            const resultDiv = document.getElementById('diagnosisResult');
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '开始问题诊断...\n\n检查可能导致"甘特图加载失败"的各种问题';
+            
+            const checks = [];
+            
+            try {
+                // 检查1: 后端服务是否运行
+                resultDiv.innerHTML += '\n\n1. 检查后端服务...';
+                const healthResponse = await fetch('http://localhost:8001/api/health');
+                checks.push({
+                    name: '后端服务',
+                    status: healthResponse.ok,
+                    message: healthResponse.ok ? '后端服务运行正常' : `后端服务异常: ${healthResponse.status}`
+                });
+                
+                // 检查2: 甘特图API是否可用
+                resultDiv.innerHTML += '\n2. 检查甘特图API...';
+                const ganttResponse = await fetch('http://localhost:8001/api/gantt/1');
+                checks.push({
+                    name: '甘特图API',
+                    status: ganttResponse.ok,
+                    message: ganttResponse.ok ? '甘特图API可用' : `甘特图API错误: ${ganttResponse.status}`
+                });
+                
+                // 检查3: CORS配置
+                resultDiv.innerHTML += '\n3. 检查CORS配置...';
+                const corsResponse = await fetch('http://localhost:8001/api/gantt/1', {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': 'http://localhost:8080',
+                        'Access-Control-Request-Method': 'GET'
+                    }
+                });
+                
+                const hasCorsHeaders = corsResponse.headers.get('access-control-allow-origin') === '*';
+                checks.push({
+                    name: 'CORS配置',
+                    status: hasCorsHeaders,
+                    message: hasCorsHeaders ? 'CORS配置正确' : 'CORS配置缺失或错误'
+                });
+                
+                // 检查4: 前端服务器
+                resultDiv.innerHTML += '\n4. 检查前端服务器...';
+                const frontendResponse = await fetch('http://localhost:8080/');
+                checks.push({
+                    name: '前端服务器',
+                    status: frontendResponse.ok,
+                    message: frontendResponse.ok ? '前端服务器运行正常' : `前端服务器异常: ${frontendResponse.status}`
+                });
+                
+                // 显示诊断结果
+                resultDiv.className = 'result';
+                let resultHtml = '🔍 问题诊断完成:\n\n';
+                
+                checks.forEach(check => {
+                    const status = check.status ? '✅' : '❌';
+                    resultHtml += `${status} ${check.name}: ${check.message}\n`;
+                });
+                
+                // 分析问题
+                const failedChecks = checks.filter(c => !c.status);
+                if (failedChecks.length === 0) {
+                    resultHtml += '\n🎉 所有检查都通过了! 系统应该正常工作。\n';
+                    resultHtml += '如果用户仍然遇到问题，可能是:\n';
+                    resultHtml += '1. 浏览器缓存 - 建议清除缓存或硬刷新 (Ctrl+Shift+R)\n';
+                    resultHtml += '2. 网络问题 - 检查网络连接\n';
+                    resultHtml += '3. 代码版本 - 确保使用的是最新修复的代码';
+                } else {
+                    resultHtml += '\n⚠️ 发现问题:\n';
+                    failedChecks.forEach(check => {
+                        resultHtml += `- ${check.name}: ${check.message}\n`;
+                    });
+                }
+                
+                resultDiv.innerHTML = resultHtml;
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ 诊断过程中出错:\n${error.message}`;
+            }
+        }
+        
+        // 初始化
+        window.onload = () => {
+            console.log('甘特图功能测试页面已加载');
+            console.log('后端API: http://localhost:8001/api/gantt/{project_id}');
+            console.log('前端服务器: http://localhost:8080');
+        };
+    </script>
+</body>
+</html>

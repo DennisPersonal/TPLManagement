@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快速测试</title>
+    <script src="modules.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>快速模块测试</h1>
+    <button onclick="testModules()">测试模块加载</button>
+    <button onclick="testAIDecomposition()">测试AI任务分解</button>
+    <div id="result"></div>
+
+    <script>
+        let moduleManager = null;
+        
+        function testModules() {
+            try {
+                if (typeof ModuleManager === 'undefined') {
+                    document.getElementById('result').innerHTML = '❌ ModuleManager 未定义';
+                    return;
+                }
+                
+                moduleManager = new ModuleManager();
+                document.getElementById('result').innerHTML = '✅ 模块加载成功！';
+                console.log('ModuleManager created:', moduleManager);
+            } catch (error) {
+                document.getElementById('result').innerHTML = `❌ 错误: ${error.message}`;
+                console.error('Error:', error);
+            }
+        }
+        
+        function testAIDecomposition() {
+            if (!moduleManager) {
+                document.getElementById('result').innerHTML = '❌ 请先加载模块';
+                return;
+            }
+            
+            try {
+                moduleManager.showAITaskDecomposition();
+                document.getElementById('result').innerHTML = '✅ AI任务分解已调用';
+            } catch (error) {
+                document.getElementById('result').innerHTML = `❌ AI任务分解错误: ${error.message}`;
+                console.error('AI Task Decomposition error:', error);
+            }
+        }
+        
+        // 页面加载时自动测试
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成，开始测试...');
+            testModules();
+        });
+    </script>
+</body>
+</html>

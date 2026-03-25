@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS修复测试 - 甘特图API</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+            color: #334155;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f1f5f9;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #475569;
+        }
+        button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #4338ca;
+        }
+        button:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #059669;
+            border-color: #a7f3d0;
+            background: #f0fdf4;
+        }
+        .error {
+            color: #dc2626;
+            border-color: #fecaca;
+            background: #fef2f2;
+        }
+        .loading {
+            color: #64748b;
+            border-color: #e2e8f0;
+            background: #f8fafc;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-loading {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+        .api-info {
+            background: #fefce8;
+            border: 1px solid #fde047;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .api-info h4 {
+            margin-top: 0;
+            color: #854d0e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 CORS修复测试 - 甘特图API</h1>
+        <p class="subtitle">测试前端跨域访问后端API的功能修复</p>
+        
+        <div class="api-info">
+            <h4>📡 API端点信息</h4>
+            <p><strong>后端URL:</strong> http://localhost:8001</p>
+            <p><strong>甘特图API:</strong> GET /api/gantt/{project_id}</p>
+            <p><strong>前端URL:</strong> http://localhost:8080</p>
+            <p><strong>问题:</strong> 跨域访问被阻止 (CORS错误)</p>
+        </div>
+        
+        <div class="test-section">
+            <h3>测试1: 直接调用甘特图API</h3>
+            <p>测试从当前页面直接调用后端API (项目ID: 1)</p>
+            <button id="testDirect">测试直接调用</button>
+            <div id="directResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>测试2: 模拟前端模块调用</h3>
+            <p>模拟前端modules.js中的loadGanttChart函数调用</p>
+            <button id="testModule">测试模块调用</button>
+            <div id="moduleResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>测试3: 检查CORS头部</h3>
+            <p>检查API响应的CORS头部是否正确设置</p>
+            <button id="testCorsHeaders">检查CORS头部</button>
+            <div id="corsResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>测试4: 完整功能测试</h3>
+            <p>完整的甘特图加载和渲染测试</p>
+            <button id="testFull">完整功能测试</button>
+            <div id="fullResult" class="result"></div>
+            <div id="ganttContainer" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 测试1: 直接调用甘特图API
+        document.getElementById('testDirect').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('directResult');
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '正在调用API: http://localhost:8001/api/gantt/1...';
+            
+            try {
+                const response = await fetch('http://localhost:8001/api/gantt/1');
+                if (!response.ok) {
+                    throw new Error(`HTTP错误: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `✅ API调用成功!\n\n响应数据:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ API调用失败:\n${error.message}\n\n完整错误:\n${error}`;
+            }
+        });
+        
+        // 测试2: 模拟前端模块调用
+        document.getElementById('testModule').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('moduleResult');
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '模拟modules.js中的loadGanttChart函数调用...';
+            
+            try {
+                // 模拟modules.js中的loadGanttChart函数
+                const projectId = 1;
+                const response = await fetch(`http://localhost:8001/api/gantt/${projectId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`获取甘特图数据失败: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `✅ 模块调用模拟成功!\n\n函数: loadGanttChart()\n项目ID: ${projectId}\n任务数量: ${data.tasks.length}\n\n响应数据片段:\n${JSON.stringify(data.tasks.slice(0, 2), null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ 模块调用模拟失败:\n${error.message}\n\n这可能就是前端报错的原因!`;
+            }
+        });
+        
+        // 测试3: 检查CORS头部
+        document.getElementById('testCorsHeaders').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('corsResult');
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '正在检查CORS头部...';
+            
+            try {
+                const response = await fetch('http://localhost:8001/api/gantt/1', {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': 'http://localhost:8080',
+                        'Access-Control-Request-Method': 'GET'
+                    }
+                });
+                
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `✅ CORS头部检查完成!\n\n响应头部:\n${JSON.stringify(headers, null, 2)}`;
+                
+                // 检查关键CORS头部
+                const corsHeaders = ['access-control-allow-origin', 'access-control-allow-methods', 'access-control-allow-headers'];
+                const missingHeaders = corsHeaders.filter(header => !headers[header]);
+                
+                if (missingHeaders.length > 0) {
+                    resultDiv.innerHTML += `\n\n⚠️ 缺少CORS头部: ${missingHeaders.join(', ')}`;
+                } else {
+                    resultDiv.innerHTML += `\n\n✅ 所有必要的CORS头部都已设置!`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ CORS头部检查失败:\n${error.message}`;
+            }
+        });
+        
+        // 测试4: 完整功能测试
+        document.getElementById('testFull').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('fullResult');
+            const container = document.getElementById('ganttContainer');
+            
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '正在进行完整功能测试...';
+            container.innerHTML = '';
+            
+            try {
+                // 1. 调用API
+                const response = await fetch('http://localhost:8001/api/gantt/1');
+                if (!response.ok) {
+                    throw new Error(`API调用失败: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                // 2. 渲染甘特图
+                renderGanttChart(data);
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `✅ 完整功能测试成功!\n\nAPI调用: 成功\n数据获取: ${data.tasks.length}个任务\n甘特图渲染: 完成`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ 完整功能测试失败:\n${error.message}`;
+            }
+        });
+        
+        // 甘特图渲染函数
+        function renderGanttChart(data) {
+            const container = document.getElementById('ganttContainer');
+            const { tasks, project_id } = data;
+            
+            if (!tasks || tasks.length === 0) {
+                container.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #94a3b8; background: white; border-radius: 8px;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">📭</div>
+                        <p>项目没有任务数据</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 创建甘特图HTML
+            let html = `
+                <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h4 style="margin: 0 0 15px 0;">项目ID: ${project_id} - 甘特图预览</h4>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <div style="width: 12px; height: 12px; background: #ef4444; border-radius: 2px;"></div>
+                            <span style="font-size: 0.9rem;">P0-紧急</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <div style="width: 12px; height: 12px; background: #f97316; border-radius: 2px;"></div>
+                            <span style="font-size: 0.9rem;">P1-高</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <div style="width: 12px; height: 12px; background: #eab308; border-radius: 2px;"></div>
+                            <span style="font-size: 0.9rem;">P2-中</span>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8fafc;">
+                                    <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">任务</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">负责人</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">开始日期</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">结束日期</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">进度</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">优先级</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            tasks.forEach(task => {
+                const priorityColor = {
+                    'P0': '#ef4444',
+                    'P1': '#f97316',
+                    'P2': '#eab308',
+                    'P3': '#10b981'
+                }[task.priority] || '#94a3b8';
+                
+                html += `
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px;">${task.title}</td>
+                        <td style="padding: 10px;">${task.assigned_to}</td>
+                        <td style="padding: 10px;">${task.start_date}</td>
+                        <td style="padding: 10px;">${task.end_date}</td>
+                        <td style="padding: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 60px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                                    <div style="width: ${task.progress}%; height: 100%; background: #4f46e5;"></div>
+                                </div>
+                                <span>${task.progress}%</span>
+                            </div>
+                        </td>
+                        <td style="padding: 10px;">
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; background: ${priorityColor}20; color: ${priorityColor}; font-size: 0.85rem;">
+                                ${task.priority}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 0.9rem;">
+                        共 ${tasks.length} 个任务
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
