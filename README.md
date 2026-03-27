@@ -192,6 +192,25 @@ python3 -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 ---
 
+## 🧪 功能验证
+
+项目包含自动化测试脚本，用于验证系统功能：
+
+```bash
+# 运行功能验证测试
+python3 test_backend.py
+```
+
+测试内容包括：
+- ✅ Git状态检查
+- ✅ 前端文件完整性验证
+- ✅ 后端模块导入测试
+- ✅ 项目结构验证
+
+## 🔄 更新日志
+
+查看 [CHANGELOG.md](CHANGELOG.md) 了解版本更新信息。
+
 **Happy Coding!** 🎉
 
-*最后更新: 2026-03-25*
+*最后更新: 2026-03-27*
